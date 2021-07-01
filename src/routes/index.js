@@ -20,7 +20,6 @@ router.get("/api/search", (req, res) => {
         if (err) {
             console.log(err);
         } else if (response.statusCode === 200) {
-            console.log(body);
             processResponse(req, res, body);
         } else {
             console.log(response.statusCode);
@@ -30,10 +29,28 @@ router.get("/api/search", (req, res) => {
 });
 
 const processResponse = (req, res, responseBody) => {
-    // console.log(responseBody);
-    let data = JSON.parse(responseBody);
-    console.log(data);
-    res.json({ 'data': data });
+    let data = JSON.parse(responseBody).results;
+
+    let products = [];
+
+    data.forEach(item => {
+        product = {
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            currency_id: item.currency_id,
+            available: item.available,
+            thumbnail: item.thumbnail,
+            condition: item.condition
+        }
+        products.push(product);
+    });
+
+    res.json(products);
+}
+
+const addToCache = (req, res, responseBody) => {
+
 }
 
 module.exports = router;
