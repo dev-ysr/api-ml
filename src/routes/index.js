@@ -40,6 +40,8 @@ router.get("/api/search", (req, res) => {
 const processResponse = (req, res, responseBody, query) => {
     let data = JSON.parse(responseBody).results;
 
+    console.log(data)
+
     let products = [];
 
     data.forEach((item) => {
@@ -48,7 +50,7 @@ const processResponse = (req, res, responseBody, query) => {
             title: item.title,
             price: item.price,
             currency_id: item.currency_id,
-            available: item.available,
+            available_quantity: item.available_quantity,
             thumbnail: item.thumbnail,
             condition: item.condition,
         };
