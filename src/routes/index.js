@@ -7,76 +7,81 @@ const { log } = require("console");
 const path = require("path");
 
 router.get("/api/search", (req, res) => {
-    const query = req.query.query;
+  const query = req.query.query;
 
-    if (!query) {
-        return;
-    }
+  if (!query) {
+    return;
+  }
 
-    if (!existsQuery(query)) {
+  if (!existsQuery(query)) {
+    const requestOptions = {
+      url: "https://api.mercadolibre.com/sites/MLA/search?q=" + query,
+      method: "GET",
+    };
 
-        const requestOptions = {
-            url: "https://api.mercadolibre.com/sites/MLA/search?q=" + query,
-            method: "GET",
-        };
-
-        request(requestOptions, (err, response, body) => {
-            if (err) {
-                console.log(err);
-            } else if (response.statusCode === 200) {
-                processResponse(req, res, body, query);
-            } else {
-                console.log(response.statusCode);
-            }
-        });
-
-    } else {
-        res.json(productsCache[query]);
-    }
-
-
+    request(requestOptions, (err, response, body) => {
+      if (err) {
+        console.log(err);
+      } else if (response.statusCode === 200) {
+        processResponse(req, res, body, query);
+      } else {
+        console.log(response.statusCode);
+      }
+    });
+  } else {
+    res.json(productsCache[query]);
+  }
 });
 
 const processResponse = (req, res, responseBody, query) => {
-    let data = JSON.parse(responseBody).results;
+  let data = JSON.parse(responseBody).results;
 
-    console.log(data)
+  //   console.log(data);
 
-    let products = [];
+  let products = [];
 
-    data.forEach((item) => {
-        product = {
-            id: item.id,
-            title: item.title,
-            price: item.price,
-            currency_id: item.currency_id,
-            available_quantity: item.available_quantity,
-            thumbnail: item.thumbnail,
-            condition: item.condition,
-        };
-        products.push(product);
-    });
+  data.forEach((item) => {
+    product = {
+      id: item.id,
+      title: item.title,
+      price: item.price,
+      currency_id: item.currency_id,
+      available_quantity: item.available_quantity,
+      thumbnail: item.thumbnail,
+      condition: item.condition,
+    };
+    products.push(product);
+  });
 
-    addToCache(query, products);
-    res.json(products);
+  addToCache(query, products);
+  res.json(products);
 };
 
 const addToCache = (query, items) => {
-    productsCache[query] = items;
+  productsCache[query] = items;
 
+  if (Object.keys(productsCache).length > 5) {
+    const file = path.join(__dirname, "./../utils/storage.json");
+
+    writeFile(file, JSON.stringify({}), () => {
+      console.log("write");
+      console.log("vacio");
+    });
+  } else {
     const file = path.join(__dirname, "./../utils/storage.json");
 
     writeFile(file, JSON.stringify(productsCache), () => {
-        console.log("write");
+      console.log("write");
     });
+  }
 };
 
 const existsQuery = (query) => {
-    if (productsCache[query]) {
-        return true;
-    } else {
-        return false;
-    }
+  if (productsCache[query]) {
+    return true;
+  } else {
+    return false;
+  }
 };
 
 module.exports = router;
